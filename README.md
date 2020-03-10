@@ -47,23 +47,36 @@ In case it stops and a relais is ON the connected valve may remain open. This ma
 
 ## Hardware
 
-I use a [OrangPI Zero](http://www.orangepi.org/orangepizero/) with [four relais](https://www.amazon.de/AZDelivery-4-Relais-Optokoppler-Low-Level-Trigger-Arduino/dp/B078Q8S9S9/) connected to it to control magnetic valves.  To allow manual control there are also five push-buttons conncted. One for each valve and one to enable/disable the timer function.
+I use an [OrangPI Zero](http://www.orangepi.org/orangepizero/) with [four relais](https://www.amazon.de/AZDelivery-4-Relais-Optokoppler-Low-Level-Trigger-Arduino/dp/B078Q8S9S9/) connected to it to control magnetic valves.  To allow manual control there are also five push-buttons conncted. One for each valve and one to enable/disable the timer function.
 
 Each button has an indicater LED to display the current state. For the relais these are connected to the same port, for the timer a seperate port is used. 
 
 So in total 10 I/O ports are utilized. In my setup a [mcp23017](http://ww1.microchip.com/downloads/en/DeviceDoc/20001952C.pdf) port expander, connected over I2C is providing the IO ports. As  [wiringPi](http://wiringpi.com/) is used to control the I/O ports you can easily choose a different setup. WiringPi abstracts these HW details nicely.
+
+
+## Command Line Switches
+
+Option    |  Semantics
+----------| --------------------------
+-d | Increase debug level 
+-f  |  Force forground mode
+-s <*filename*> | Specify scedule table file
+-c | Clear schedule table cache
+
+The schedule table is initialized with the entries in the file specified with `-s`. On top of these all events present before shutdown will be restored unless the `-c` option is present.  
 
 ## System Setup
 
 tbd
 
 ## Remote API
-tdb
+
+The app is controlled over MQTT and reports back over MQTT. 
 
 ### Change State
 
 Topic    |  Payload  |  Semantics
----------| ----------- | -----------
+---------| --------------------------- | -----------
 `/YardControl/Command/Valve_[A\|B\|C\|D]` | `[ON\|OFF]` |  Turn the specified valve On or Off
 `/YardControl/Command/mqttLogging`  |  `[ON\|OFF]`  |  Enable/Disable log messaged over MQTT.  Log messages are sent with topic `/YardControl/Log`.
 `/YardControl/Command/Timer`  |  `[ON\|OFF]`  |  Enable/Disable timer function (*) 
@@ -117,3 +130,19 @@ Topic    |  Payload  |  Semantics
 /YardControl/ScheduleTable/Entry Valve_B ON 23:30
 ```
 
+## Config File Syntax
+
+The syntax is the same as for the `addEvent` API.  Everything after ´#´ is ignored as comment
+
+```
+#
+#   Valve     State     Time
+# (A/B/C/D)  (ON/OFF)  (hh:mm)
+
+A   ON   10:00
+A   ON   10:09
+A   OFF  10:15
+
+C   ON   11:15
+C   OFF  11:20
+```

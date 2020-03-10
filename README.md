@@ -61,16 +61,28 @@ tbd
 tdb
 
 ### Change State
+
 Topic    |  Payload  |  Semantics
 ---------| ----------- | -----------
-`/YardControl/Command/Valve_X` | `[ON\|OFF]` |  Turn Valve <*X*>  ON/OFF.  *X* needs to be A, B, C or D 
-`/YardControl/Command/mqttLogging` | `ON` or `OFF` |  Enable/Disable log messaged over MQTT.  Log messages are sent with topic `/YardControl/Log`.
+`/YardControl/Command/Valve_[A\|B\|C\|D]` | `[ON\|OFF]` |  Turn the specified valve On or Off
+`/YardControl/Command/mqttLogging`  |  `[ON\|OFF]`  |  Enable/Disable log messaged over MQTT.  Log messages are sent with topic `/YardControl/Log`.
+`/YardControl/Command/timer`  |  `[ON\|OFF]`  |  Enable/Disable timer function (*) 
 
 ### Modify Schedule Table
+
 Topic    |  Payload  |  Semantics
 ---------| ----------- | -----------
-`/YardControl/Command/addEvent`       |   |  Turn Valve *X*  ON/OFF.  *X* needs to be A, B, C or D 
-`/YardControl/Command/removeEvent` | `1` or `0` |  Turn Valve *X*  ON/OFF.  *X* needs to be A, B, C or D 
+`/YardControl/Command/addEvent`       |  `[A\|B\|C\|D] [ON\|OFF] hh:mm`  |  Add timer event to turn the specified valve ON or OFF at the given time. 
+`/YardControl/Command/removeEvent` |  `[A\|B\|C\|D] [ON\|OFF] hh:mm`  |  Remove the timer event which turns the specified valve ON or OFF at the given time. 
 
 ### Retrieve Status
-tdb
+
+Topic    |  Payload  |  Semantics
+---------| ----------- | -----------
+`/YardControl/Command/Refresh`       |   ignored  | Trigger transmission of status.  
+/YardControl/State/Valve_A OFF
+/YardControl/State/Valve_B OFF
+/YardControl/State/Valve_C OFF
+/YardControl/State/Valve_D OFF
+/YardControl/State/Timer  OFF
+`/YardControl/Command/removeEvent` |  `[A\|B\|C\|D] [ON\|OFF] hh:mm`  |  Remove the timer event which turns the specified valve ON or OFF at the given time. 

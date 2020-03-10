@@ -79,7 +79,7 @@ button_t pushButton[] = {
     { "Valve_B", BUTTON_B,   VALVE_B,  false, 0,          true,  (time_t) 0 },
     { "Valve_C", BUTTON_C,   VALVE_C,  false, 0,          true,  (time_t) 0 },
     { "Valve_D", BUTTON_D,   VALVE_D,  false, 0,          true,  (time_t) 0 },
-    { "Run",     BUTTON_RUN, LED_RUN,  false, 0,          false, (time_t) 0 },
+    { "Timer",   BUTTON_RUN, LED_RUN,  false, 0,          false, (time_t) 0 },
    // end marker
     { NULL,      -1,         -1,       false, 0,          true,  (time_t) 0 }
 };
@@ -270,7 +270,7 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
     } else if ( mqttMatch("/YardControl/Command/saveScheduleTable", topic) ) {
         saveScheduleTable(CACHE_FILE);
 
-    // save schedule table to cache file
+    // enabel disable logging over mqtt
     } else if ( mqttMatch("/YardControl/Command/mqttLoging", topic) ) {
         if ( !strncmp(payload, "ON", 2) ) {
             switchMQTTlog(true);

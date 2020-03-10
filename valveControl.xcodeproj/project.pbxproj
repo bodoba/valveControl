@@ -17,8 +17,6 @@
 		2106622A23F9AC5A00436F46 /* daemon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = daemon.c; sourceTree = "<group>"; };
 		2106622B23F9B59300436F46 /* mqttGateway.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mqttGateway.c; sourceTree = "<group>"; };
 		2106622C23F9B59300436F46 /* mqttGateway.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mqttGateway.h; sourceTree = "<group>"; };
-		2106622D23FDA58E00436F46 /* persistState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = persistState.h; sourceTree = "<group>"; };
-		2106622E23FDA58E00436F46 /* persistState.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = persistState.c; sourceTree = "<group>"; };
 		2106622F240722FF00436F46 /* valvecontrol.cnf */ = {isa = PBXFileReference; lastKnownFileType = text; path = valvecontrol.cnf; sourceTree = "<group>"; };
 		210662302407240A00436F46 /* scheduler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = scheduler.h; sourceTree = "<group>"; };
 		210662312407240A00436F46 /* scheduler.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = scheduler.c; sourceTree = "<group>"; };
@@ -41,8 +39,6 @@
 				2106622923F9AC5A00436F46 /* daemon.h */,
 				2106622B23F9B59300436F46 /* mqttGateway.c */,
 				2106622C23F9B59300436F46 /* mqttGateway.h */,
-				2106622D23FDA58E00436F46 /* persistState.h */,
-				2106622E23FDA58E00436F46 /* persistState.c */,
 			);
 			sourceTree = "<group>";
 		};

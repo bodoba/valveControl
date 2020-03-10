@@ -28,9 +28,11 @@ This application provides a mqtt based remote control for irrigation valves to a
 ### Limitations
 
 **No security mechnisms  are provided**
+
 The assumptions is that the application interacts with a local mqtt broker.  Remote access to the system needs to  controlled by other means. 
 
-**Only minimal safety mechanism are provided** 
+**Only minimal safety mechanisms are provided** 
+
 The assumption is that the IO ports work as designed. There is no second source to control the actual status of the relais compared to the state of the output ports.
 
 The only mechnism to limit possible harm are:
@@ -39,14 +41,15 @@ The only mechnism to limit possible harm are:
 * Port states are refreshed every 10 seconds
 * All relais are set to OFF state at startup 
 
-**You should watchdog the application** 
+**Please watchdog the application**
+
 In case it stops and a relais is ON the connected valve may remain open. This may lead to damage or increases water costs.
 
 ## Hardware
 
-I use a [OrangPI Zero](http://www.orangepi.org/orangepizero/) with four relais connected to it to control magnetic valves.  To allow manual control there are also five push-buttons conncted. One for each valve and one to enable/disable the timer function.
+I use a [OrangPI Zero](http://www.orangepi.org/orangepizero/) with [four relais](https://www.amazon.de/AZDelivery-4-Relais-Optokoppler-Low-Level-Trigger-Arduino/dp/B078Q8S9S9/) connected to it to control magnetic valves.  To allow manual control there are also five push-buttons conncted. One for each valve and one to enable/disable the timer function.
 
-Each button has an indacet LED to display the current state. For the relais these are connected to the same port, for the timer a seperate port is used. 
+Each button has an indicater LED to display the current state. For the relais these are connected to the same port, for the timer a seperate port is used. 
 
 So in total 10 I/O ports are utilized. In my setup a [mcp23017](http://ww1.microchip.com/downloads/en/DeviceDoc/20001952C.pdf) port expander, connected over I2C is providing the IO ports. As  [wiringPi](http://wiringpi.com/) is used to control the I/O ports you can easily choose a different setup. WiringPi abstracts these HW details nicely.
 
@@ -58,7 +61,11 @@ tbd
 tdb
 
 ### Change State
-tdb
+Topic    |  Payload  |  Semantics
+---------| ----------- | -----------
+`/YardControl/Command/Valve_X` | `ON|OFF` |  Turn Valve *X*  ON/OFF. X needs to be A,B,C od D 
+
+
 
 ### Modify Schedule Table
 tdb

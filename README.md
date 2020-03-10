@@ -63,12 +63,14 @@ tdb
 ### Change State
 Topic    |  Payload  |  Semantics
 ---------| ----------- | -----------
-`/YardControl/Command/Valve_X` | `ON|OFF` |  Turn Valve *X*  ON/OFF. X needs to be A,B,C od D 
-
-
+`/YardControl/Command/Valve_X` | `[ON\|OFF]` |  Turn Valve <*X*>  ON/OFF.  *X* needs to be A, B, C or D 
+`/YardControl/Command/mqttLogging` | `ON` or `OFF` |  Enable/Disable log messaged over MQTT.  Log messages are sent with topic `/YardControl/Log`.
 
 ### Modify Schedule Table
-tdb
+Topic    |  Payload  |  Semantics
+---------| ----------- | -----------
+`/YardControl/Command/addEvent`       |   |  Turn Valve *X*  ON/OFF.  *X* needs to be A, B, C or D 
+`/YardControl/Command/removeEvent` | `1` or `0` |  Turn Valve *X*  ON/OFF.  *X* needs to be A, B, C or D 
 
 ### Retrieve Status
 tdb

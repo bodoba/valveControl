@@ -40,7 +40,7 @@
 #include <mcp23017.h>
 
 /* ----------------------------------------------------------------------------------- *
- * Projeczt includes
+ * Project includes
  * ----------------------------------------------------------------------------------- */
 #include "valveControl.h"
 #include "mqttGateway.h"
@@ -83,6 +83,8 @@ button_t pushButton[] = {
    // end marker
     { NULL,      -1,         -1,       false, 0,          true,  (time_t) 0 }
 };
+
+#define INDEX_TIMER 4
 
 /* ----------------------------------------------------------------------------------- *
  * MQTT callbacks
@@ -169,7 +171,6 @@ void setButtonState(int button, bool state) {
     pushButton[button].timestamp = state ? time(NULL) : (time_t) 0;
 
     saveState (pushButton[button].name, pushButton[button].state);
-
 
     writeLog(LOG_NOTICE, "%s toggled to %s", pushButton[button].name, pushButton[button].state ? "ON" : "OFF" );
     
@@ -261,16 +262,12 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
     if ( mqttMatch("/YardControl/Command/Refresh", topic) ) {
         writeLog(LOG_NOTICE, "MQTT command: Send State info" );
         publishButtonState();
-        
+
     // dump schedule table to broker
     } else if ( mqttMatch("/YardControl/Command/dumpScheduleTable", topic) ) {
         dumpScheduleTable();
-
-    // save schedule table to cache file
-    } else if ( mqttMatch("/YardControl/Command/saveScheduleTable", topic) ) {
-        saveScheduleTable(CACHE_FILE);
-
-    // enabel disable logging over mqtt
+        
+    // enable disable logging over mqtt
     } else if ( mqttMatch("/YardControl/Command/mqttLoging", topic) ) {
         if ( !strncmp(payload, "ON", 2) ) {
             switchMQTTlog(true);
@@ -291,7 +288,6 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
             if ( use_cache ) {
                 saveScheduleTable(CACHE_FILE);
             }
-
         }
 
     // remove event from schedule table
@@ -316,16 +312,16 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
             if ( mqttMatch( sub, topic) ) {
                 writeLog(LOG_INFO, "Matched button: %s", pushButton[index].name );
                 
-                if ( !strncmp(payload,"ON", payloadlen) || !strncmp(payload,"1", payloadlen) ) {
+                if ( !strncmp(payload, "ON", 2) || !strncmp(payload, "1", 1) ) {
                     writeLog(LOG_NOTICE, "MQTT command: Switch %s ON", pushButton[index].name );
                     setButtonState(index, true);
                     publishButtonState();
-                } else if ( !strncmp(payload,"OFF", payloadlen) || !strncmp(payload,"0", payloadlen) ) {
+                } else if ( !strncmp(payload, "OFF", 2) || !strncmp(payload,"0", 1) ) {
                     writeLog(LOG_NOTICE, "MQTT command: Switch %s OFF", pushButton[index].name );
                     setButtonState(index, false);
                     publishButtonState();
                 } else {
-                    writeLog(LOG_WARNING, "Uknown MQTT command for %s: %s", pushButton[index].name, payload );
+                    writeLog(LOG_WARNING, "Uknown command for %s: %s", pushButton[index].name, payload);
                 }
             }
             index++;
@@ -344,7 +340,9 @@ void mainLoop(void) {
         time_t now = time(NULL);
         if ( now >= (lastTime+10) ) {    // once every ten seconds
             lastTime = now;
-            processScheduleTable();      // trigger events as scheduled
+            if (pushButton[INDEX_TIMER].state ) {
+                processScheduleTable();  // trigger events as scheduled
+            }
             setIoStates();               // refresh output IO port states
             valveTimeOut(600);           // make sure valves are not active more than
                                          // 600 seconds without refresh
@@ -403,6 +401,9 @@ int main( int argc, char *argv[] ) {
         if ( use_cache ) {
             loadScheduleTable(CACHE_FILE);
         }
+        
+        // restore timer setting
+        setButtonState(INDEX_TIMER, readState(pushButton[INDEX_TIMER].name));
         
         // Initialize IO ports
         setupIO();

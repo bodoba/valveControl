@@ -66,7 +66,7 @@ Topic    |  Payload  |  Semantics
 ---------| ----------- | -----------
 `/YardControl/Command/Valve_[A\|B\|C\|D]` | `[ON\|OFF]` |  Turn the specified valve On or Off
 `/YardControl/Command/mqttLogging`  |  `[ON\|OFF]`  |  Enable/Disable log messaged over MQTT.  Log messages are sent with topic `/YardControl/Log`.
-`/YardControl/Command/timer`  |  `[ON\|OFF]`  |  Enable/Disable timer function (*) 
+`/YardControl/Command/Timer`  |  `[ON\|OFF]`  |  Enable/Disable timer function (*) 
 
 ### Modify Schedule Table
 
@@ -79,10 +79,41 @@ Topic    |  Payload  |  Semantics
 
 Topic    |  Payload  |  Semantics
 ---------| ----------- | -----------
-`/YardControl/Command/Refresh`       |   ignored  | Trigger transmission of status.  
+`/YardControl/Command/Refresh`                      | *ignored*  | Trigger transmission of status.  (The status report is sent after each status change)
+`/YardControl/Command/dumpScheduleTable`  | *ignored*  | Trigger transmission of current schedule table 
+
+#### Examples
+
+**Status**
+```
+>> /YardControl/Command/Refresh 0
+
 /YardControl/State/Valve_A OFF
 /YardControl/State/Valve_B OFF
 /YardControl/State/Valve_C OFF
 /YardControl/State/Valve_D OFF
-/YardControl/State/Timer  OFF
-`/YardControl/Command/removeEvent` |  `[A\|B\|C\|D] [ON\|OFF] hh:mm`  |  Remove the timer event which turns the specified valve ON or OFF at the given time. 
+/YardControl/State/Timer OFF
+```
+
+**Schedule Table**
+```
+>>  /YardControl/Command/dumpScheduleTable 0
+
+/YardControl/ScheduleTable/Entry Valve_A ON 10:00
+/YardControl/ScheduleTable/Entry Valve_A ON 10:09
+/YardControl/ScheduleTable/Entry Valve_A OFF 10:15
+/YardControl/ScheduleTable/Entry Valve_C ON 11:15
+/YardControl/ScheduleTable/Entry Valve_C OFF 11:20
+/YardControl/ScheduleTable/Entry Valve_D OFF 15:47
+/YardControl/ScheduleTable/Entry Valve_D OFF 15:49
+/YardControl/ScheduleTable/Entry Valve_D OFF 15:52
+/YardControl/ScheduleTable/Entry Valve_D ON 23:05
+/YardControl/ScheduleTable/Entry Valve_D OFF 21:27
+/YardControl/ScheduleTable/Entry Valve_D OFF 20:33
+/YardControl/ScheduleTable/Entry Valve_D OFF 21:45
+/YardControl/ScheduleTable/Entry Valve_D ON 21:46
+/YardControl/ScheduleTable/Entry Valve_D ON 21:57
+/YardControl/ScheduleTable/Entry Valve_D OFF 21:58
+/YardControl/ScheduleTable/Entry Valve_B ON 23:30
+```
+

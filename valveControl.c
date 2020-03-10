@@ -53,7 +53,7 @@
  * Some globals we can't do without... ;)
  * ----------------------------------------------------------------------------------- */
 int    debug              = 0;                 // debug level
-bool   use_cache          = false;             // cache schedule table
+bool   use_cache          = true;              // cache schedule table
 bool   foreground         = false;             // run in foreground, not as daemon
 
 /* ----------------------------------------------------------------------------------- *
@@ -370,7 +370,7 @@ int main( int argc, char *argv[] ) {
             debug++;
         }
         
-        if (!strcmp(argv[i], "-f")) {          // '-f' forces forground mode
+        if (!strcmp(argv[i], "-f")) {          // '-f' force forground mode
             foreground=true;
         }
         
@@ -378,8 +378,8 @@ int main( int argc, char *argv[] ) {
             scheduleTableFile = strdup(argv[++i]);
         }
 
-        if (!strcmp(argv[i], "-c")) {          // '-c' use schedule table cache
-            use_cache = true;
+        if (!strcmp(argv[i], "-c")) {          // '-c' clear schedule table cache
+            use_cache = false;
         }
     }
 

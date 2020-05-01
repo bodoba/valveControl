@@ -29,7 +29,7 @@ This application provides a mqtt based remote control for irrigation valves to a
 
 **No security mechnisms  are provided**
 
-The assumptions is that the application interacts with a local mqtt broker.  Remote access to the system needs to  controlled by other means. 
+The assumptions is that the application interacts with a local mqtt broker.  Remote access to the system needs to  be controlled by other means. 
 
 **Only minimal safety mechanisms are provided** 
 

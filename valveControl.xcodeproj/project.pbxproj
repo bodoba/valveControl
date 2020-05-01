@@ -23,12 +23,16 @@
 		2180977A24183FCC0020661F /* License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
 		2180977B24183FCD0020661F /* persistState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = persistState.h; sourceTree = "<group>"; };
 		2180977C24183FCD0020661F /* persistState.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = persistState.c; sourceTree = "<group>"; };
+		21D20295245A336E001C9C47 /* valvecontrol */ = {isa = PBXFileReference; lastKnownFileType = text; name = valvecontrol; path = Contrib/valvecontrol; sourceTree = "<group>"; };
+		21D20296245C8542001C9C47 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		2106621823F9A31900436F46 = {
 			isa = PBXGroup;
 			children = (
+				21D20296245C8542001C9C47 /* README.md */,
+				21D20295245A336E001C9C47 /* valvecontrol */,
 				210662302407240A00436F46 /* scheduler.h */,
 				210662312407240A00436F46 /* scheduler.c */,
 				2106622F240722FF00436F46 /* valvecontrol.cnf */,

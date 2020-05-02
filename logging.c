@@ -105,11 +105,18 @@ void printCache( void ) {
     int index;
     
     if ( ringBufferNext == 0 ) {
-        index = LOG_CACHE_SIZE-1
+        index = LOG_CACHE_SIZE-1;
     } else {
         index = ringBufferNext-1;
     }
     
+    while ( ringBuffer[index][0] ) {
+        mqttPublish("/YardControl/Log", ringBuffer[index]);
+        index--;
+        if ( index <= 0 ) {
+          index = LOG_CACHE_SIZE-1;
+        }
+    }
 }
 
 /* ----------------------------------------------------------------------------------- *

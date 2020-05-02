@@ -21,7 +21,7 @@
 build_host=192.168.100.50
 build_dir=valveControl
 
-source_files="*.c *.h CMakeLists.txt valvecontrol.cnf valvecontrol"
+source_files="*.c *.h CMakeLists.txt valvecontrol.cnf Contrib/valvecontrol"
 
 scp $source_files $build_host:$build_dir
 ssh -x $build_host "(cd $build_dir && cmake . && make)"

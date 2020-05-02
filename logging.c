@@ -27,14 +27,25 @@
 static int  logLevel     = LOG_ERR;
 static bool useSyslog    = true;
 static bool useMQTTlog   = false;
-static const char * logLevelText[] = {  "emergency",
-                                        "alert",
-                                        "citical",
-                                        "error",
-                                        "warning",
-                                        "notice",
-                                        "info",
-                                        "debug"
+
+/* ----------------------------------------------------------------------------------- *
+ * ring buffer to cache log entries
+ * ----------------------------------------------------------------------------------- */
+static char ringBuffer[LOG_CACHE_SIZE][1024];
+static int  ringBufferNext=0;
+
+/* ----------------------------------------------------------------------------------- *
+* exported data
+* ----------------------------------------------------------------------------------- */
+const char * logLevelText[] = {
+    "EMERGENCY",
+    "ALERT",
+    "CRITICAL",
+    "ERROR",
+    "WARNING",
+    "NOTICE",
+    "INFO",
+    "DEGUG"
 };
 
 /* ----------------------------------------------------------------------------------- *
@@ -45,6 +56,11 @@ void initLog( bool syslog ) {
     
     if ( useSyslog) {
         openlog(NULL, LOG_PID, LOG_USER);            // use syslog to create a trace
+    }
+
+        // initialize ringbuffer
+    for ( int i=0; i<LOG_CACHE_SIZE; i++) {
+        ringBuffer[i][0] = (char)0;
     }
 }
 
@@ -68,6 +84,32 @@ int setLogLevel( int level ) {
  * ----------------------------------------------------------------------------------- */
 void switchMQTTlog( bool on ) {
     useMQTTlog = on;
+}
+
+/* ----------------------------------------------------------------------------------- *
+ * add log entry to cache
+ * ----------------------------------------------------------------------------------- */
+void addToCache(const char* logmessage) {
+    strncpy(ringBuffer[ringBufferNext], logmessage, 1024);
+    ringBufferNext++;
+    
+    if ( ringBufferNext >= LOG_CACHE_SIZE) {
+        ringBufferNext = 0;
+    }
+}
+
+/* ----------------------------------------------------------------------------------- *
+ * print cached log entries to MQTT
+ * ----------------------------------------------------------------------------------- */
+void printCache( void ) {
+    int index;
+    
+    if ( ringBufferNext == 0 ) {
+        index = LOG_CACHE_SIZE-1
+    } else {
+        index = ringBufferNext-1;
+    }
+    
 }
 
 /* ----------------------------------------------------------------------------------- *

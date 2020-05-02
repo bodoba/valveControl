@@ -38,6 +38,11 @@
   LOG_DEBUG    A message useful for debugging programs.
  */
 
+extern const char * logLevelText[];
+
+// Numer of log entries to cache (1k per entry)
+#define LOG_CACHE_SIZE 100
+
 /* ----------------------------------------------------------------------------------- *
  * Prototypes
  * ----------------------------------------------------------------------------------- */

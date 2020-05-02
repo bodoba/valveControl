@@ -302,7 +302,47 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
                 saveScheduleTable(CACHE_FILE);
             }
         }
+                
+    // enable/disable log messages over MQTT
+    } else if ( mqttMatch("/YardControl/Command/mqttLogging", topic) ) {
+        if ( !strncmp(payload, "ON", 2) || !strncmp(payload, "1", 1) ) {
+            char message[32];
+
+            switchMQTTlog( true );
+            sprintf(message, "%d (%s)", getLogLevel(), logLevelText[getLogLevel()] );
+            mqttPublish("/YardControl/State/LogLevel", message);
+        } else if ( !strncmp(payload, "OFF", 2) || !strncmp(payload,"0", 1) ) {
+            switchMQTTlog( false );
+        }
         
+    // set log level
+    } else if ( mqttMatch("/YardControl/Command/setLogLevel", topic) ) {
+        if ( !strncmp(payload, "EMERGENCY", strlen(payload))) {
+            setLogLevel(LOG_EMERG);
+        } else if (!strncmp(payload, "ALERT", strlen(payload))) {
+            setLogLevel(LOG_ALERT);
+        } else if (!strncmp(payload, "CRITICAL", strlen(payload))) {
+            setLogLevel(LOG_CRIT);
+        } else if (!strncmp(payload, "ERROR", strlen(payload))) {
+            setLogLevel(LOG_ERR);
+        } else if (!strncmp(payload, "WARNING", strlen(payload))) {
+            setLogLevel(LOG_WARNING);
+        } else if (!strncmp(payload, "NOTICE", strlen(payload))) {
+            setLogLevel(LOG_NOTICE);
+        } else if (!strncmp(payload, "INFO", strlen(payload))) {
+            setLogLevel(LOG_INFO);
+        } else if (!strncmp(payload, "DEBUG", strlen(payload))) {
+            setLogLevel(LOG_DEBUG);
+        } else {
+            writeLog(LOG_NOTICE, "Invalid log level selected: %s", payload );
+        }
+        
+    // get log level
+    } else if ( mqttMatch("/YardControl/Command/getLogLevel", topic) ) {
+        char message[32];
+        sprintf(message, "%d (%s)", getLogLevel(), logLevelText[getLogLevel()] );
+        mqttPublish("/YardControl/State/LogLevel", message);
+
     // check for match with button
     } else {
         while ( pushButton[index].name ) {

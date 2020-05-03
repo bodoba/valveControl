@@ -27,16 +27,17 @@
 static int  logLevel     = LOG_ERR;
 static bool useSyslog    = true;
 static bool useMQTTlog   = false;
+static void addToCache( const char* logmessage );
 
 /* ----------------------------------------------------------------------------------- *
  * ring buffer to cache log entries
  * ----------------------------------------------------------------------------------- */
-static char ringBuffer[LOG_CACHE_SIZE][1024];
+static char ringBuffer[LOG_CACHE_SIZE][MAX_LOG_MESSAGE_SIZE];
 static int  ringBufferNext=0;
 
 /* ----------------------------------------------------------------------------------- *
-* exported data
-* ----------------------------------------------------------------------------------- */
+ * exported data
+ * ----------------------------------------------------------------------------------- */
 const char * logLevelText[] = {
     "EMERGENCY",
     "ALERT",
@@ -45,7 +46,7 @@ const char * logLevelText[] = {
     "WARNING",
     "NOTICE",
     "INFO",
-    "DEGUG"
+    "DEBUG"
 };
 
 /* ----------------------------------------------------------------------------------- *
@@ -55,10 +56,10 @@ void initLog( bool syslog ) {
     useSyslog = syslog;
     
     if ( useSyslog) {
-        openlog(NULL, LOG_PID, LOG_USER);            // use syslog to create a trace
+        openlog(NULL, LOG_PID, LOG_USER);                 // use syslog to create a trace
     }
 
-        // initialize ringbuffer
+    // initialize ringbuffer
     for ( int i=0; i<LOG_CACHE_SIZE; i++) {
         ringBuffer[i][0] = (char)0;
     }
@@ -75,7 +76,7 @@ int setLogLevel( int level ) {
     if (logLevel < LOG_EMERG ) {
         logLevel = LOG_EMERG;
     }
-    writeLog(LOG_NOTICE, "Set log level to %s", logLevelText[level]);
+    writeLog(LOG_INFO, "Set log level to %s", logLevelText[level]);
     return logLevel;
 }
     
@@ -84,13 +85,14 @@ int setLogLevel( int level ) {
  * ----------------------------------------------------------------------------------- */
 void switchMQTTlog( bool on ) {
     useMQTTlog = on;
+    writeLog(LOG_INFO, "%sable logging to MQTT", on ? "En" : "Dis");
 }
 
 /* ----------------------------------------------------------------------------------- *
  * add log entry to cache
  * ----------------------------------------------------------------------------------- */
-void addToCache(const char* logmessage) {
-    strncpy(ringBuffer[ringBufferNext], logmessage, 1024);
+static void addToCache(const char* logmessage) {
+    strncpy(ringBuffer[ringBufferNext], logmessage, MAX_LOG_MESSAGE_SIZE);
     ringBufferNext++;
     
     if ( ringBufferNext >= LOG_CACHE_SIZE) {
@@ -101,19 +103,19 @@ void addToCache(const char* logmessage) {
 /* ----------------------------------------------------------------------------------- *
  * print cached log entries to MQTT
  * ----------------------------------------------------------------------------------- */
-void printCache( void ) {
-    int index;
-    
+void printLog( void ) {
+    int index, count=0;
+    writeLog(LOG_INFO, "Print log cache to MQTT");
+
     if ( ringBufferNext == 0 ) {
         index = LOG_CACHE_SIZE-1;
     } else {
         index = ringBufferNext-1;
     }
     
-    while ( ringBuffer[index][0] ) {
+    while ( ringBuffer[index][0] && ++count < LOG_CACHE_SIZE ) {
         mqttPublish("/YardControl/Log", ringBuffer[index]);
-        index--;
-        if ( index <= 0 ) {
+        if ( --index <= 0 ) {
           index = LOG_CACHE_SIZE-1;
         }
     }
@@ -130,31 +132,33 @@ int getLogLevel( void ) {
  * write log entry
  * ----------------------------------------------------------------------------------- */
 void writeLog( int level, const char* format, ...) {
+    static unsigned long sequenceCounter = 0;
     va_list valist;
+    char msg[MAX_LOG_MESSAGE_SIZE];
+    char fmt[MAX_LOG_MESSAGE_SIZE];
+    
     if( level <= logLevel ) {
         time_t now = time(NULL);
         struct tm *timestamp = localtime(&now);
-        char fmt[512];
         va_start(valist, format);
-    
+
+        sprintf(fmt, "%06lu %04d-%02d-%02d %02d:%02d:%02d <%s> %s", sequenceCounter,
+                timestamp->tm_year+1900, timestamp->tm_mon+1, timestamp->tm_mday,
+                timestamp->tm_hour, timestamp->tm_min, timestamp->tm_sec,
+                logLevelText[level] , format);
+        vsprintf( msg, fmt, valist );
+        
         if ( useSyslog ) {
             sprintf(fmt, "<%s> %s\n", logLevelText[level], format);
             vsyslog( level, fmt, valist );
         } else {
-            sprintf(fmt, "%04d-%02d-%02d %02d:%02d:%02d <%s> %s\n",
-                    timestamp->tm_year+1900, timestamp->tm_mon+1, timestamp->tm_mday,
-                    timestamp->tm_hour, timestamp->tm_min, timestamp->tm_sec,
-                    logLevelText[level] , format);
             vprintf( fmt, valist );
         }
+    
         if ( useMQTTlog ) {
-            char msg[1024];
-            sprintf(fmt, "%04d-%02d-%02d %02d:%02d:%02d <%s> %s",
-                    timestamp->tm_year+1900, timestamp->tm_mon+1, timestamp->tm_mday,
-                    timestamp->tm_hour, timestamp->tm_min, timestamp->tm_sec,
-                    logLevelText[level] , format);
-            vsprintf( msg, fmt, valist );
             mqttPublish( "/YardControl/Log", msg);
         }
+        addToCache( msg );
+        sequenceCounter++;
     }
 }

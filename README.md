@@ -95,7 +95,18 @@ Topic    |  Payload  |  Semantics
 `/YardControl/Command/Refresh`                      | *ignored*  | Trigger transmission of status.  (The status report is sent after each status change)
 `/YardControl/Command/dumpScheduleTable`  | *ignored*  | Trigger transmission of current schedule table 
 
-#### Examples
+### Debugging
+
+You can change the log level and retrieve log messages:
+
+Topic    |  Payload  |  Semantics
+---------| ----------- | -----------
+`/YardControl/Command/mqttLogging`  | `[ON\|OFF]`  | Enable/disable remote log messages
+`/YardControl/Command/setLogLevel` | `[EMERGENCY\|ALERT\|CRITICAL\|ERROR\|WARNING\|NOTICE\|INFO\|DEBUG]` | set log level (see also [syslog(2)](https://linux.die.net/man/2/syslog)) 
+`/YardControl/Command/getLogLevel`| *ignored* | Returns the currently used log level 
+`/YardControl/Command/printLog`| *ignored* |  Trigger transmission of the last hundred log messages
+
+### Examples
 
 **Status**
 ```

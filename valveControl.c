@@ -317,32 +317,21 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
         
     // set log level
     } else if ( mqttMatch("/YardControl/Command/setLogLevel", topic) ) {
-        if ( !strncmp(payload, "EMERGENCY", strlen(payload))) {
-            setLogLevel(LOG_EMERG);
-        } else if (!strncmp(payload, "ALERT", strlen(payload))) {
-            setLogLevel(LOG_ALERT);
-        } else if (!strncmp(payload, "CRITICAL", strlen(payload))) {
-            setLogLevel(LOG_CRIT);
-        } else if (!strncmp(payload, "ERROR", strlen(payload))) {
-            setLogLevel(LOG_ERR);
-        } else if (!strncmp(payload, "WARNING", strlen(payload))) {
-            setLogLevel(LOG_WARNING);
-        } else if (!strncmp(payload, "NOTICE", strlen(payload))) {
-            setLogLevel(LOG_NOTICE);
-        } else if (!strncmp(payload, "INFO", strlen(payload))) {
-            setLogLevel(LOG_INFO);
-        } else if (!strncmp(payload, "DEBUG", strlen(payload))) {
-            setLogLevel(LOG_DEBUG);
-        } else {
-            writeLog(LOG_NOTICE, "Invalid log level selected: %s", payload );
+        for ( int logLevel = 0; logLevel <= MAX_LOG_LEVEL; logLevel++ ) {
+            if ( !strncmp(payload, logLevelText[logLevel], strlen(logLevelText[logLevel]))) {
+                setLogLevel(logLevel);
+            }
         }
-        
     // get log level
     } else if ( mqttMatch("/YardControl/Command/getLogLevel", topic) ) {
         char message[32];
         sprintf(message, "%d (%s)", getLogLevel(), logLevelText[getLogLevel()] );
         mqttPublish("/YardControl/State/LogLevel", message);
 
+    // print log message cache
+    } else if ( mqttMatch("/YardControl/Command/printLog", topic) ) {
+        printLog();
+        
     // check for match with button
     } else {
         while ( pushButton[index].name ) {

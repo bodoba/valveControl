@@ -41,17 +41,20 @@
 extern const char * logLevelText[];
 
 // Numer of log entries to cache (1k per entry)
-#define LOG_CACHE_SIZE 100
+#define LOG_CACHE_SIZE        100
+#define MAX_LOG_MESSAGE_SIZE 1024
+#define MAX_LOG_LEVEL           7
 
 /* ----------------------------------------------------------------------------------- *
  * Prototypes
  * ----------------------------------------------------------------------------------- */
-int setLogLevel( int level );
-int getLogLevel( void );
-
-void switchMQTTlog( bool on );
 
 void initLog( bool useSyslog );
 void writeLog( int logLevel, const char* format, ... );
+void printLog( void );
+int setLogLevel( int level );
+int getLogLevel( void );
+void switchMQTTlog( bool on );
+
 
 #endif /* logging_h */

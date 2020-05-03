@@ -1,0 +1,14 @@
+#!/bin/bash
+
+SERVICE=valvecontrol
+DAEMON=/usr/sbin/valvecontrol
+
+/bin/ps -ax | /bin/grep $DAEMON | /bin/grep -v grep > /dev/null
+
+if [ $? -eq 1 ] ; then
+  # restart service
+  /usr/bin/mosquitto_pub -t "/YardControl/Watchdog" -m "Restart service $SERVICE by watchdog"
+  /usr/bin/logger "[WATCHDOG] Restart service $SERVICE by watchdog"
+  /usr/sbin/service $SERVICE stop
+  /usr/sbin/service $SERVICE start
+fi

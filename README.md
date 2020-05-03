@@ -78,7 +78,6 @@ The app is controlled over MQTT and reports back over MQTT.
 Topic    |  Payload  |  Semantics
 ---------| --------------------------- | -----------
 `/YardControl/Command/Valve_[A\|B\|C\|D]` | `[ON\|OFF]` |  Turn the specified valve On or Off
-`/YardControl/Command/mqttLogging`  |  `[ON\|OFF]`  |  Enable/Disable log messaged over MQTT.  Log messages are sent with topic `/YardControl/Log`.
 `/YardControl/Command/Timer`  |  `[ON\|OFF]`  |  Enable/Disable timer function (*) 
 
 ### Modify Schedule Table
@@ -101,7 +100,7 @@ You can change the log level and retrieve log messages:
 
 Topic    |  Payload  |  Semantics
 ---------| ----------- | -----------
-`/YardControl/Command/mqttLogging`  | `[ON\|OFF]`  | Enable/disable remote log messages
+`/YardControl/Command/mqttLogging`  |  `[ON\|OFF]`  |  Enable/Disable log messaged over MQTT.  Log messages are sent with topic `/YardControl/Log`.
 `/YardControl/Command/setLogLevel` | `[EMERGENCY\|ALERT\|CRITICAL\|ERROR\|WARNING\|NOTICE\|INFO\|DEBUG]` | set log level (see also [syslog(2)](https://linux.die.net/man/2/syslog)) 
 `/YardControl/Command/getLogLevel`| *ignored* | Returns the currently used log level 
 `/YardControl/Command/printLog`| *ignored* |  Trigger transmission of the last hundred log messages
@@ -110,36 +109,63 @@ Topic    |  Payload  |  Semantics
 
 **Status**
 ```
->> /YardControl/Command/Refresh 0
-
+> mosquitto_pub -t "/YardControl/Command/Refresh" -m "0"
+```
+Messages sent:
+```
 /YardControl/State/Valve_A OFF
 /YardControl/State/Valve_B OFF
 /YardControl/State/Valve_C OFF
 /YardControl/State/Valve_D OFF
-/YardControl/State/Timer OFF
+/YardControl/State/Timer ON
 ```
 
 **Schedule Table**
 ```
->>  /YardControl/Command/dumpScheduleTable 0
-
+> mosquitto_pub -t "/YardControl/Command/dumpScheduleTable" -m "0"
+```
+Messages sent:
+```
 /YardControl/ScheduleTable/Entry Valve_A ON 10:00
 /YardControl/ScheduleTable/Entry Valve_A ON 10:09
 /YardControl/ScheduleTable/Entry Valve_A OFF 10:15
+/YardControl/ScheduleTable/Entry Valve_B ON 23:30
+/YardControl/ScheduleTable/Entry Valve_B OFF 23:35
 /YardControl/ScheduleTable/Entry Valve_C ON 11:15
 /YardControl/ScheduleTable/Entry Valve_C OFF 11:20
-/YardControl/ScheduleTable/Entry Valve_D OFF 15:47
-/YardControl/ScheduleTable/Entry Valve_D OFF 15:49
-/YardControl/ScheduleTable/Entry Valve_D OFF 15:52
 /YardControl/ScheduleTable/Entry Valve_D ON 23:05
-/YardControl/ScheduleTable/Entry Valve_D OFF 21:27
-/YardControl/ScheduleTable/Entry Valve_D OFF 20:33
-/YardControl/ScheduleTable/Entry Valve_D OFF 21:45
-/YardControl/ScheduleTable/Entry Valve_D ON 21:46
-/YardControl/ScheduleTable/Entry Valve_D ON 21:57
-/YardControl/ScheduleTable/Entry Valve_D OFF 21:58
-/YardControl/ScheduleTable/Entry Valve_B ON 23:30
+/YardControl/ScheduleTable/Entry Valve_D OFF 23:10
 ```
+
+**Logging**
+```
+> mosquitto_pub -t "/YardControl/Command/printLog" -m "1"
+```
+Messages sent:
+```
+/YardControl/Log 000121 2020-05-03 16:09:19 <NOTICE> Set log level to NOTICE
+/YardControl/Log 000120 2020-05-03 16:09:19 <INFO> Reveived MQTT Command: /YardControl/Command/setLogLevel -> NOTICE
+/YardControl/Log 000119 2020-05-03 16:07:53 <DEBUG> writeState( Valve_C, FALSE )
+/YardControl/Log 000118 2020-05-03 16:07:53 <DEBUG> readState( Valve_C ) -> TRUE
+/YardControl/Log 000117 2020-05-03 16:07:53 <NOTICE> Valve_C forced OFF by Valve_B
+/YardControl/Log 000116 2020-05-03 16:07:53 <NOTICE> Valve_B toggled to ON
+/YardControl/Log 000115 2020-05-03 16:07:53 <DEBUG> writeState( Valve_B, TRUE )
+/YardControl/Log 000114 2020-05-03 16:07:53 <DEBUG> readState( Valve_B ) -> FALSE
+/YardControl/Log 000113 2020-05-03 16:07:53 <NOTICE> MQTT command: Switch Valve_B ON
+/YardControl/Log 000112 2020-05-03 16:07:53 <INFO> Matched button: Valve_B
+/YardControl/Log 000111 2020-05-03 16:07:53 <INFO> Reveived MQTT Command: /YardControl/Command/Valve_B -> ON
+/YardControl/Log 000110 2020-05-03 16:07:52 <NOTICE> Valve_C toggled to ON
+/YardControl/Log 000109 2020-05-03 16:07:52 <DEBUG> writeState( Valve_C, TRUE )
+/YardControl/Log 000108 2020-05-03 16:07:52 <DEBUG> readState( Valve_C ) -> TRUE
+/YardControl/Log 000107 2020-05-03 16:07:52 <NOTICE> MQTT command: Switch Valve_C ON
+/YardControl/Log 000106 2020-05-03 16:07:52 <INFO> Matched button: Valve_C
+/YardControl/Log 000105 2020-05-03 16:07:52 <INFO> Reveived MQTT Command: /YardControl/Command/Valve_C -> ON
+/YardControl/Log 000104 2020-05-03 16:07:51 <NOTICE> Valve_B toggled to OFF
+/YardControl/Log 000103 2020-05-03 16:07:51 <DEBUG> writeState( Valve_B, FALSE )
+/YardControl/Log 000102 2020-05-03 16:07:51 <DEBUG> readState( Valve_B ) -> FALSE
+[...]
+```
+
 
 ## Config File Syntax
 

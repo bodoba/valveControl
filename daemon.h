@@ -25,4 +25,10 @@
  * ----------------------------------------------------------------------------------- */
 void daemonize(const char *pidFile);
 
+/* ----------------------------------------------------------------------------------- *
+ * Stop operations and exit process
+ *
+ * INPUT: exitCode -> Value to return from process
+ * ----------------------------------------------------------------------------------- */
+void shutdown_daemon(int exitCode);
 #endif /* daemon_h */

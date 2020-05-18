@@ -31,7 +31,6 @@
  * Local prototype
  * ----------------------------------------------------------------------------------- */
 static void signalCB( int sigval );
-static void shutdown_daemon(void);
 static void writePid();
 
 /* ----------------------------------------------------------------------------------- *
@@ -111,8 +110,7 @@ void signalCB(int sigval)
         case SIGINT:
         case SIGTERM:
             syslog(LOG_INFO, "Daemon exiting");
-            shutdown_daemon();
-            exit(EXIT_SUCCESS);
+            shutdown_daemon(EXIT_SUCCESS);
             break;
         default:
             syslog(LOG_WARNING, "Unhandled signal %s", strsignal(sigval));
@@ -123,8 +121,9 @@ void signalCB(int sigval)
 /* ----------------------------------------------------------------------------------- *
  * shutdwown deamon
  * ----------------------------------------------------------------------------------- */
-void shutdown_daemon(void) {
+void shutdown_daemon(int exitCode) {
     syslog(LOG_INFO, "Yard Control shutting down");
     close(pidFilehandle);
     unlink(pidFile);
+    exit(exitCode);
 }

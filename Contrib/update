@@ -16,55 +16,13 @@
 #  You should have received a copy of the GNU General Public License                  #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.              #
 # *********************************************************************************** #
-#
-# Start/stop the valveControl daemon
-#
-### BEGIN INIT INFO
-# Provides:          valvecontrol
-# Required-Start:    $network $syslog
-# Required-Stop:     $network $syslog
-# Default-Start:     2 3 4 5
-# Default-Stop:
-# Short-Description: Automated irrigation control
-# Description:       Automated irrigation control
-### END INIT INFO
 
-PATH=/bin:/usr/bin:/sbin:/usr/sbin
-DESC="valvecontrol"
-NAME=valvecontrol
-DAEMON=/usr/sbin/valvecontrol
-PIDFILE=/var/run/valvecontrol.pid
-CONFIGFILE=/etc/valvecontrol.cnf
-SCRIPTNAME=/etc/init.d/"$NAME"
-EXTRA_OPTS=-s $CONFIGFILE
+source=/home/pi/valveControl/bin/valveControl
+target=/usr/sbin/valvecontrol
 
-test -f $DAEMON || exit 0
-
-. /lib/lsb/init-functions
-
-case "$1" in
-start)  log_daemon_msg "Starting irrigation control" "valveControl"
-        start_daemon -p $PIDFILE $DAEMON $EXTRA_OPTS
-        log_end_msg $?
-        ;;
-
-stop)   log_daemon_msg "Stopping irrigation control" "valveControl"
-        killproc -p $PIDFILE $DAEMON
-        RETVAL=$?
-        [ $RETVAL -eq 0 ] && [ -e "$PIDFILE" ] && rm -f $PIDFILE
-        log_end_msg $RETVAL
-        ;;
-
-restart) log_daemon_msg "Restarting irrigation control" "valveControl"
-         $0 stop
-         $0 start
-         ;;
-
-status)  status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
-         ;;
-
-*)      log_action_msg "Usage: /etc/init.d/cron {start|stop|status|restart}"
-        exit 2
-        ;;
-esac
-exit 0
+if [ "$target" -ot "$source" ]; then
+  /usr/sbin/service valvecontrol stop
+  /usr/bin/logger "[UPDATE] Update Service valvecontrol"
+  cp $source $target
+  /usr/sbin/service valvecontrol start
+fi

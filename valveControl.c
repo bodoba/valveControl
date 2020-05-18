@@ -332,6 +332,15 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
     } else if ( mqttMatch("/YardControl/Command/printLog", topic) ) {
         printLog();
         
+    // Exit excution
+    } else if ( mqttMatch("/YardControl/Command/exit", topic) ) {
+        writeLog(LOG_WARNING, "Stopping execution on MQTT request" );
+        for ( int index = 0; index < 4; index ++ ) // turn off all valves
+        while ( pushButton[index].name ) {
+            setButtonState(index, false);
+        }
+        shutdown_daemon(EXIT_SUCCESS);
+        
     // check for match with button
     } else {
         while ( pushButton[index].name ) {

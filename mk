@@ -21,7 +21,10 @@
 build_host=$1
 build_dir=valveControl
 
-source_files="*.c *.h CMakeLists.txt valvecontrol.cnf Contrib/valvecontrol"
+source_files="*.c *.h CMakeLists.txt valvecontrol.cnf"
+contrib_files="Contrib/*"
 
-scp $source_files $build_host:$build_dir
+scp $source_files  $build_host:$build_dir
+scp $contrib_files $build_host:$build_dir/Contrib
+
 ssh -x $build_host "(cd $build_dir && cmake . && make)"

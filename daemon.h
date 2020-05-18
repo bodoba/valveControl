@@ -21,7 +21,7 @@
 /* ----------------------------------------------------------------------------------- *
  * detach from the controlling terminal and run in the background as system daemons
  *
- * INPUT: pidFile -> filname to lock and store pid in
+ * INPUT: pidFile -> filename to lock and store pid in
  * ----------------------------------------------------------------------------------- */
 void daemonize(const char *pidFile);
 

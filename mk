@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU General Public License                  #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.              #
 # *********************************************************************************** #
-build_host=192.168.100.50
+build_host=$1
 build_dir=valveControl
 
 source_files="*.c *.h CMakeLists.txt valvecontrol.cnf Contrib/valvecontrol"

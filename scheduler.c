@@ -274,11 +274,9 @@ bool addScheduleTableEvent(char valve, bool state, int hour, int minute) {
     // check for duplicate
     for ( index = 0; index < SCHEDULE_TABLE_ENTRIES; index++ ) {
         if ( scheduleTable[index].valve != (char)0 ) {
-            if (   scheduleTable[index].valve  == valve
-                && scheduleTable[index].state  == state
-                && scheduleTable[index].hour   == hour
+            if (   scheduleTable[index].hour   == hour
                 && scheduleTable[index].minute == minute ) {
-                writeLog(LOG_WARNING, "addEvent: Ignoring duplicate" );
+                writeLog(LOG_WARNING, "addEvent: Ignoring duplicate (%02d:%02d)", hour, minute );
                 success = false;
                 break;
             }

@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 # *********************************************************************************** #
 #                                                                                     #
-#  Copyright (c) 2020 by Bodo Bauer <bb@bb-zone.com>                                  #
+#  Copyright (c) 2020 by Bodo Bauer <bb@bb-zone.com>                                 #
 #                                                                                     #
 #  This program is free software: you can redistribute it and/or modify               #
 #  it under the terms of the GNU General Public License as published by               #
@@ -16,11 +16,11 @@
 #  You should have received a copy of the GNU General Public License                  #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.              #
 # *********************************************************************************** #
-#
+
 # Start/stop the valveControl daemon
 #
 ### BEGIN INIT INFO
-# Provides:          valvecontrol
+# Provides:          valveControl
 # Required-Start:    $network $syslog
 # Required-Stop:     $network $syslog
 # Default-Start:     2 3 4 5
@@ -30,13 +30,13 @@
 ### END INIT INFO
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
-DESC="valvecontrol"
+DESC="Automated irrigation control"
 NAME=valvecontrol
 DAEMON=/usr/sbin/valvecontrol
 PIDFILE=/var/run/valvecontrol.pid
-CONFIGFILE=/etc/valvecontrol.cnf
+CONFIGFILE=/etc/valvecontrol.cfg
 SCRIPTNAME=/etc/init.d/"$NAME"
-EXTRA_OPTS=-s $CONFIGFILE
+EXTRA_OPTS="-s $CONFIGFILE"
 
 test -f $DAEMON || exit 0
 
@@ -68,3 +68,4 @@ status)  status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
         ;;
 esac
 exit 0
+

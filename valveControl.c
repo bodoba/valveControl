@@ -335,8 +335,7 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
     // Exit excution
     } else if ( mqttMatch("/YardControl/Command/exit", topic) ) {
         writeLog(LOG_WARNING, "Stopping execution on MQTT request" );
-        for ( int index = 0; index < 4; index ++ ) // turn off all valves
-        while ( pushButton[index].name ) {
+        for ( int index = 0; index < 4; index ++ ) { // turn off all valves
             setButtonState(index, false);
         }
         shutdown_daemon(EXIT_SUCCESS);

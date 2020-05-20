@@ -66,6 +66,8 @@ Option    |  Semantics
 
 The schedule table is initialized with the entries in the file specified with `-s`. On top of these all events present before shutdown will be restored unless the `-c` option is present.  
 
+Use `-p` if you run multiple instances. This allows to address every instance individually.  The `/YardControl/...`  prefix shown in all examples here will have to be changed to the specified prefix.
+
 ## System Setup
 
 tbd

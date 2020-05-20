@@ -32,19 +32,6 @@ static struct mosquitto *mosq = NULL;
  * ----------------------------------------------------------------------------------- */
 static        mqttIncoming_t *subscriptionList = NULL;
 static        const char* mqttPrefix;
-/* ----------------------------------------------------------------------------------- *
- * Local prototypes
- * ----------------------------------------------------------------------------------- */
-static void mqttLog(struct mosquitto *mosq, void *user_data, int logLevel, const char *logMessage);
-
-/* ----------------------------------------------------------------------------------- *
- * Proxy to redirect mosquitto log messages to writeLog
- * ----------------------------------------------------------------------------------- */
-void mqttLog(struct mosquitto *mosq, void *user_data, int logLevel, const char *logMessage) {
-#ifdef MQTT_DEBUG
-    writeLog(LOG_INFO, logMessage);
-#endif
-}
 
 /* ----------------------------------------------------------------------------------- *
  * Dispatch incoming messages
@@ -92,8 +79,6 @@ bool mqttInit( const char* prefix, const char* broker, int port, int keepalive, 
         writeLog(LOG_ERR, "Error: mosquitto_connect [%s]\n", mosquitto_strerror(err));
         success = false;
     } else {
-        mosquitto_log_callback_set(mosq, &mqttLog);
-
         mosquitto_message_callback_set(mosq, &dispatchMessage);
         if ( subscriptions ) {
             subscriptionList = subscriptions;

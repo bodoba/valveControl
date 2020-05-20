@@ -114,7 +114,7 @@ void printLog( void ) {
     }
     
     while ( ringBuffer[index][0] && ++count < LOG_CACHE_SIZE ) {
-        mqttPublish("/YardControl/Log", ringBuffer[index]);
+        mqttPublish("/Log", ringBuffer[index]);
         if ( --index <= 0 ) {
           index = LOG_CACHE_SIZE-1;
         }
@@ -156,7 +156,7 @@ void writeLog( int level, const char* format, ...) {
         }
     
         if ( useMQTTlog ) {
-            mqttPublish( "/YardControl/Log", msg);
+            mqttPublish( "/Log", msg);
         }
         addToCache( msg );
         sequenceCounter++;

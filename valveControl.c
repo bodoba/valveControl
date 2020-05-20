@@ -55,6 +55,7 @@
 int    debug              = 0;                 // debug level
 bool   use_cache          = true;              // cache schedule table
 bool   foreground         = false;             // run in foreground, not as daemon
+char   *mqttPrefix;
 
 /* ----------------------------------------------------------------------------------- *
  * Prototypes
@@ -198,7 +199,7 @@ void publishButtonState(void) {
     char mqttTopic[32];
 
     while ( pushButton[index].name ) {
-        sprintf(mqttTopic, "/YardControl/State/%s", pushButton[index].name);
+        sprintf(mqttTopic, "/State/%s", pushButton[index].name);
         mqttPublish(mqttTopic, pushButton[index].state ? "ON" : "OFF" );
         index++;
     }
@@ -207,9 +208,13 @@ void publishButtonState(void) {
 /* ----------------------------------------------------------------------------------- *
  * Process MQTT commands
  * ----------------------------------------------------------------------------------- */
-bool mqttMatch( char* pattern, char* topic ) {
+bool mqttMatch( const char* command, const char* topic ) {
+    char pattern[128];
     bool match;
+    
+    sprintf(pattern, "/%s/Command/%s", mqttPrefix, command);
     mosquitto_topic_matches_sub(pattern, topic, &match);
+    
     return match;
 }
 
@@ -255,20 +260,19 @@ bool mqttParseEvent(char* payload, char *valve, bool *state, int *hour, int *min
 
 void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) {
     int   index = 0;
-    char  sub[strlen(MQTT_INPUT_TOPIC)+10];
     writeLog(LOG_INFO, "Reveived MQTT Command: %s -> %s", topic, payload);
     
     // status update requested?
-    if ( mqttMatch("/YardControl/Command/Refresh", topic) ) {
+    if ( mqttMatch("Refresh", topic) ) {
         writeLog(LOG_NOTICE, "MQTT command: Send State info" );
         publishButtonState();
 
     // dump schedule table to broker
-    } else if ( mqttMatch("/YardControl/Command/dumpScheduleTable", topic) ) {
+    } else if ( mqttMatch("dumpScheduleTable", topic) ) {
         dumpScheduleTable();
         
     // enable disable logging over mqtt
-    } else if ( mqttMatch("/YardControl/Command/mqttLoging", topic) ) {
+    } else if ( mqttMatch("mqttLoging", topic) ) {
         if ( !strncmp(payload, "ON", 2) ) {
             switchMQTTlog(true);
             writeLog(LOG_NOTICE, "Enabled logging to MQTT" );
@@ -278,7 +282,7 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
         }
         
     // add event to schedule table
-    } else if ( mqttMatch("/YardControl/Command/addEvent", topic) ) {
+    } else if ( mqttMatch("addEvent", topic) ) {
         char valve;
         bool state;
         int  hour, minute;
@@ -291,7 +295,7 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
         }
 
     // remove event from schedule table
-    } else if ( mqttMatch("/YardControl/Command/removeEvent", topic) ) {
+    } else if ( mqttMatch("removeEvent", topic) ) {
         char valve;
         bool state;
         int  hour, minute;
@@ -304,36 +308,35 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
         }
                 
     // enable/disable log messages over MQTT
-    } else if ( mqttMatch("/YardControl/Command/mqttLogging", topic) ) {
+    } else if ( mqttMatch("mqttLogging", topic) ) {
         if ( !strncmp(payload, "ON", 2) || !strncmp(payload, "1", 1) ) {
             char message[32];
-
             switchMQTTlog( true );
             sprintf(message, "%d (%s)", getLogLevel(), logLevelText[getLogLevel()] );
-            mqttPublish("/YardControl/State/LogLevel", message);
+            mqttPublish("/State/LogLevel", message);
         } else if ( !strncmp(payload, "OFF", 2) || !strncmp(payload,"0", 1) ) {
             switchMQTTlog( false );
         }
         
     // set log level
-    } else if ( mqttMatch("/YardControl/Command/setLogLevel", topic) ) {
+    } else if ( mqttMatch("setLogLevel", topic) ) {
         for ( int logLevel = 0; logLevel <= MAX_LOG_LEVEL; logLevel++ ) {
             if ( !strncmp(payload, logLevelText[logLevel], strlen(logLevelText[logLevel]))) {
                 setLogLevel(logLevel);
             }
         }
     // get log level
-    } else if ( mqttMatch("/YardControl/Command/getLogLevel", topic) ) {
+    } else if ( mqttMatch("getLogLevel", topic) ) {
         char message[32];
         sprintf(message, "%d (%s)", getLogLevel(), logLevelText[getLogLevel()] );
-        mqttPublish("/YardControl/State/LogLevel", message);
+        mqttPublish("/State/LogLevel", message);
 
     // print log message cache
-    } else if ( mqttMatch("/YardControl/Command/printLog", topic) ) {
+    } else if ( mqttMatch("printLog", topic) ) {
         printLog();
         
     // Exit excution
-    } else if ( mqttMatch("/YardControl/Command/exit", topic) ) {
+    } else if ( mqttMatch("exit", topic) ) {
         writeLog(LOG_WARNING, "Stopping execution on MQTT request" );
         for ( int index = 0; index < 4; index ++ ) { // turn off all valves
             setButtonState(index, false);
@@ -343,10 +346,7 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
     // check for match with button
     } else {
         while ( pushButton[index].name ) {
-            strcpy(sub, MQTT_INPUT_TOPIC);
-            sub[strlen(MQTT_INPUT_TOPIC)-1] = (char)0;
-            strcat(sub, pushButton[index].name);
-            if ( mqttMatch( sub, topic) ) {
+            if ( mqttMatch( pushButton[index].name, topic) ) {
                 writeLog(LOG_INFO, "Matched button: %s", pushButton[index].name );
                 
                 if ( !strncmp(payload, "ON", 2) || !strncmp(payload, "1", 1) ) {
@@ -400,6 +400,7 @@ void mainLoop(void) {
  * ----------------------------------------------------------------------------------- */
 int main( int argc, char *argv[] ) {
     char *scheduleTableFile = NULL;
+    mqttPrefix = "YardControl";
     
     // Process command line options
     for (int i=0; i<argc; i++) {
@@ -418,6 +419,10 @@ int main( int argc, char *argv[] ) {
         if (!strcmp(argv[i], "-c")) {          // '-c' clear schedule table cache
             use_cache = false;
         }
+        
+        if (!strcmp(argv[i], "-p")) {          // '-p' prefix to be used for MQTT topics
+            mqttPrefix = strdup(argv[++i]);
+        }
     }
 
     // initialize logging channel
@@ -431,7 +436,12 @@ int main( int argc, char *argv[] ) {
         writeLog(LOG_NOTICE, "Running in foreground");
     }
     
-    if (mqttInit( MQTT_BROKER_HOST, MQTT_BROKER_PORT, 60, subscriptions) ) {
+    // set correct prefix for incoming messages
+    char topic[128];
+    sprintf(topic, "/%s/Command/#", mqttPrefix );
+    subscriptions[0].topic = strdup(topic);
+    
+    if (mqttInit(mqttPrefix, MQTT_BROKER_HOST, MQTT_BROKER_PORT, 60, subscriptions) ) {
         // load event schedule
         initScheduleTable();
         loadScheduleTable(scheduleTableFile);

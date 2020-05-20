@@ -147,7 +147,7 @@ bool loadScheduleTable(const char *scheduleTableFile) {
 void dumpScheduleTable(void) {
     for ( int index=0; index<SCHEDULE_TABLE_ENTRIES; index++) {
         if ( scheduleTable[index].valve ) {
-            mqttPublish("/YardControl/ScheduleTable/Entry", "Valve_%c %s %02d:%02d",
+            mqttPublish("/ScheduleTable/Entry", "Valve_%c %s %02d:%02d",
                 scheduleTable[index].valve,
                 scheduleTable[index].state ? "ON" : "OFF",
                 scheduleTable[index].hour,

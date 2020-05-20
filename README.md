@@ -62,6 +62,7 @@ Option    |  Semantics
 -f  |  Force forground mode
 -s <*filename*> | Specify scedule table file
 -c | Clear schedule table cache
+-p<*prefix*> | Use  "/<'prefix'>" to prefix all incoming and outgoing MQTT messages. Defaults to "YardControl"
 
 The schedule table is initialized with the entries in the file specified with `-s`. On top of these all events present before shutdown will be restored unless the `-c` option is present.  
 
@@ -104,6 +105,7 @@ Topic    |  Payload  |  Semantics
 `/YardControl/Command/setLogLevel` | `[EMERGENCY\|ALERT\|CRITICAL\|ERROR\|WARNING\|NOTICE\|INFO\|DEBUG]` | set log level (see also [syslog(2)](https://linux.die.net/man/2/syslog)) 
 `/YardControl/Command/getLogLevel`| *ignored* | Returns the currently used log level 
 `/YardControl/Command/printLog`| *ignored* |  Trigger transmission of the last hundred log messages
+`/YardControl/Command/exit`| *ignored* |  Turn all vales off and quit the application. (Most useful if a watchdog restarts it)
 
 ### Examples
 

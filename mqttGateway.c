@@ -31,7 +31,7 @@ static struct mosquitto *mosq = NULL;
  * List of topics to subscribe to along with handlers to call on reception
  * ----------------------------------------------------------------------------------- */
 static        mqttIncoming_t *subscriptionList = NULL;
-
+static        const char* mqttPrefix;
 /* ----------------------------------------------------------------------------------- *
  * Local prototypes
  * ----------------------------------------------------------------------------------- */
@@ -69,9 +69,10 @@ void dispatchMessage(struct mosquitto *mos, void *userData, const struct mosquit
 /* ----------------------------------------------------------------------------------- *
  * Connect to MQTT broker
  * ----------------------------------------------------------------------------------- */
-bool mqttInit( const char* broker, int port, int keepalive, mqttIncoming_t *subscriptions) {
+bool mqttInit( const char* prefix, const char* broker, int port, int keepalive, mqttIncoming_t *subscriptions) {
     bool success = true;
     int err;
+    mqttPrefix = prefix;
     
     mosquitto_lib_init();
     mosq = mosquitto_new(NULL, true, NULL);
@@ -124,13 +125,16 @@ bool mqttPublish(const char *topic, const char* format, ... ) {
     va_list valist;
     int err;
     char message[512];
+    char pTopic[512];
     bool success = true;
 
+    sprintf(pTopic, "/%s%s", mqttPrefix, topic);
+    
     va_start(valist, format);
     vsprintf(message, format, valist);
     
     if ( mosq ) {
-        err = mosquitto_publish( mosq, NULL, topic, strlen(message), message, 0, false);
+        err = mosquitto_publish( mosq, NULL, pTopic, strlen(message), message, 0, false);
         if ( err != MOSQ_ERR_SUCCESS) {
             writeLog(LOG_ERR, "Error: mosquitto_publish failed [%s]\n", mosquitto_strerror(err));
             success = false;
@@ -141,4 +145,3 @@ bool mqttPublish(const char *topic, const char* format, ... ) {
     }
     return success;
 }
-

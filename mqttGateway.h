@@ -40,7 +40,7 @@ typedef struct mqttIncoming_t {
 /* ----------------------------------------------------------------------------------- *
  * Exported functions
  * ----------------------------------------------------------------------------------- */
-bool mqttInit(const char* broker, int port, int keepalive, mqttIncoming_t *subscriptions);
+bool mqttInit(const char* prefix, const char* broker, int port, int keepalive, mqttIncoming_t *subscriptions);
 void mqttEnd(void );
 bool mqttPublish(const char *topic, const char* format, ... );
 

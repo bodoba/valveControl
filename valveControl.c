@@ -381,8 +381,8 @@ void mainLoop(void) {
                 processScheduleTable();  // trigger events as scheduled
             }
             setIoStates();               // refresh output IO port states
-            valveTimeOut(600);           // make sure valves are not active more than
-                                         // 600 seconds without refresh
+            valveTimeOut(1200);          // make sure valves are not active more than
+                                         // 20 Minutes without refresh
         }
  
         if ( now >= (lastBroadcast+300) ) {  // publish button states every 5 minutes

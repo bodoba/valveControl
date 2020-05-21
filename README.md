@@ -70,7 +70,9 @@ Use `-p` if you run multiple instances. This allows to address every instance in
 
 ## System Setup
 
-tbd
+![](/Doc/SystemArchitecture.png)
+
+tbc
 
 ## Remote API
 

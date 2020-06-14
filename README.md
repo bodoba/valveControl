@@ -36,7 +36,7 @@ The assumptions is that the application interacts with a local mqtt broker.  Rem
 The assumption is that the IO ports work as designed. There is no second source to control the actual status of the relais compared to the state of the output ports.
 
 The only mechnism to limit possible harm are:
-* Relais are shut off 10 minutes after the last ON coommand
+* Relais are shut off by a timeout after the last ON coommand
 * Only one relais at a time is set to ON
 * Port states are refreshed every 10 seconds
 * All relais are set to OFF state at startup 
@@ -91,6 +91,7 @@ Topic    |  Payload  |  Semantics
 ---------| ----------- | -----------
 `/YardControl/Command/addEvent`       |  `[A\|B\|C\|D] [ON\|OFF] hh:mm`  |  Add timer event to turn the specified valve ON or OFF at the given time. 
 `/YardControl/Command/removeEvent` |  `[A\|B\|C\|D] [ON\|OFF] hh:mm`  |  Remove the timer event which turns the specified valve ON or OFF at the given time. 
+`/YardControl/Command/setValveTimeout`  |  Integer Value  |  Valve will be shut off after <timeout> seconds after last `ON` action even without explicit `OFF` command . Defaults to 1200. Changed value is persisted over restarts  
 
 ### Retrieve Status
 
@@ -98,6 +99,8 @@ Topic    |  Payload  |  Semantics
 ---------| ----------- | -----------
 `/YardControl/Command/Refresh`                      | *ignored*  | Trigger transmission of status.  (The status report is sent after each status change)
 `/YardControl/Command/dumpScheduleTable`  | *ignored*  | Trigger transmission of current schedule table 
+`/YardControl/Command/getValveTimeout`      | *ignored*  | get current timeout setting  
+`/YardControl/Command/getEventHistory`      | *ignored*  | Trigger transmission ot the last time each valve has been switched on and off 
 
 ### Debugging
 

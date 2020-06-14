@@ -29,6 +29,8 @@ typedef struct button_t {
     int        lastReading;
     bool       radio;
     time_t     timestamp;
+    time_t     lastOn;
+    time_t     lastOff;
 } button_t;
 
 extern button_t pushButton[];

@@ -52,10 +52,11 @@
 /* ----------------------------------------------------------------------------------- *
  * Some globals we can't do without... ;)
  * ----------------------------------------------------------------------------------- */
-int    debug              = 0;                 // debug level
-bool   use_cache          = true;              // cache schedule table
-bool   foreground         = false;             // run in foreground, not as daemon
-char   *mqttPrefix;
+int    debug        = 0;                 // debug level
+bool   use_cache    = true;              // cache schedule table
+bool   foreground   = false;             // run in foreground, not as daemon
+char   *mqttPrefix;                      // all messages, in and out, start with /<prefix>/...
+int    valveMax     = 1200;              // shut valves off after <valveTimeout> seconds unless a new command arrived
 
 /* ----------------------------------------------------------------------------------- *
  * Prototypes
@@ -69,20 +70,21 @@ void publishButtonState(void);
 void valveTimeOut(int max);
 void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data);
 void setIoStates ( void );
+void dumpEventHistory( void );
 
 /* ----------------------------------------------------------------------------------- *
  * Definition of the pushbuttons
  * ----------------------------------------------------------------------------------- */
 button_t pushButton[] = {
-    /* name      pinButton   pinLED    state  lastReading radio timestamp */
+    /* name      pinButton   pinLED    state  lastReading radio timestamp lastOn lastOff*/
 
-    { "Valve_A", BUTTON_A,   VALVE_A,  false, 0,          true,  (time_t) 0 },
-    { "Valve_B", BUTTON_B,   VALVE_B,  false, 0,          true,  (time_t) 0 },
-    { "Valve_C", BUTTON_C,   VALVE_C,  false, 0,          true,  (time_t) 0 },
-    { "Valve_D", BUTTON_D,   VALVE_D,  false, 0,          true,  (time_t) 0 },
-    { "Timer",   BUTTON_RUN, LED_RUN,  false, 0,          false, (time_t) 0 },
+    { "Valve_A", BUTTON_A,   VALVE_A,  false, 0,          true,  (time_t) 0, (time_t) 0, (time_t) 0 },
+    { "Valve_B", BUTTON_B,   VALVE_B,  false, 0,          true,  (time_t) 0, (time_t) 0, (time_t) 0 },
+    { "Valve_C", BUTTON_C,   VALVE_C,  false, 0,          true,  (time_t) 0, (time_t) 0, (time_t) 0 },
+    { "Valve_D", BUTTON_D,   VALVE_D,  false, 0,          true,  (time_t) 0, (time_t) 0, (time_t) 0 },
+    { "Timer",   BUTTON_RUN, LED_RUN,  false, 0,          false, (time_t) 0, (time_t) 0, (time_t) 0 },
    // end marker
-    { NULL,      -1,         -1,       false, 0,          true,  (time_t) 0 }
+    { NULL,      -1,         -1,       false, 0,          true,  (time_t) 0, (time_t) 0, (time_t) 0 }
 };
 
 #define INDEX_TIMER 4
@@ -168,6 +170,16 @@ void pollButtons(void) {
  * Set button state
  * ----------------------------------------------------------------------------------- */
 void setButtonState(int button, bool state) {
+
+    // record if this is an actual state change
+    if ( state != pushButton[button].state ) {
+        if ( state ) {
+            pushButton[button].lastOn = time(NULL);
+        } else {
+            pushButton[button].lastOff = time(NULL);
+        }
+    }
+    
     pushButton[button].state     = state;
     pushButton[button].timestamp = state ? time(NULL) : (time_t) 0;
 
@@ -182,6 +194,7 @@ void setButtonState(int button, bool state) {
             if ( idxRadio != button && pushButton[idxRadio].state && pushButton[idxRadio].radio ) {
                 pushButton[idxRadio].state = false;
                 pushButton[idxRadio].timestamp = (time_t) 0;
+                pushButton[idxRadio].lastOff = time(NULL);
                 writeLog(LOG_NOTICE, "%s forced OFF by %s", pushButton[idxRadio].name, pushButton[button].name );
                 saveState (pushButton[idxRadio].name, pushButton[idxRadio].state);
             }
@@ -189,6 +202,28 @@ void setButtonState(int button, bool state) {
         }
     }
     setIoStates();
+}
+
+
+/* ----------------------------------------------------------------------------------- *
+ * publish last state changes
+ * ----------------------------------------------------------------------------------- */
+void dumpEventHistory( void ) {
+    int index = 0;
+    struct tm *ts;
+    
+    while ( pushButton[index].name ) {
+        if (pushButton[index].lastOn) {
+            ts = localtime ( &(pushButton[index].lastOn) );
+            mqttPublish("/State/LastOn", "%s %04d-%02d-%02d %02d:%02d", pushButton[index].name, ts->tm_year+1900, ts->tm_mon+1, ts->tm_mday, ts->tm_hour, ts->tm_min );
+        }
+        
+        if (pushButton[index].lastOff) {
+            ts = localtime ( &(pushButton[index].lastOff) );
+            mqttPublish("/State/LastOff", "%s %04d-%02d-%02d %02d:%02d", pushButton[index].name, ts->tm_year+1900, ts->tm_mon+1, ts->tm_mday, ts->tm_hour, ts->tm_min );
+        }
+        index++;
+    }
 }
 
 /* ----------------------------------------------------------------------------------- *
@@ -280,6 +315,23 @@ void mqttCommandCB(char *payload, int payloadlen, char *topic, void *user_data) 
             writeLog(LOG_NOTICE, "Disabled logging to MQTT" );
             switchMQTTlog(false);
         }
+    
+    // publish last state changes
+    } else if ( mqttMatch("getEventHistory", topic) ) {
+        dumpEventHistory();
+
+    // set valve timeout value
+    } else if ( mqttMatch("setValveTimeout", topic) ) {
+        int timeout = atoi ( payload );
+        if ( timeout > 0 ) {
+            valveMax = timeout;
+            saveInt("valveMax", valveMax);
+            mqttPublish("/State/valveTimeout", "%d", valveMax);
+        }
+        
+    // publish valve timeout value
+    } else if ( mqttMatch("getValveTimeout", topic) ) {
+        mqttPublish("/State/valveTimeout", "%d", valveMax);
         
     // add event to schedule table
     } else if ( mqttMatch("addEvent", topic) ) {
@@ -381,15 +433,14 @@ void mainLoop(void) {
                 processScheduleTable();  // trigger events as scheduled
             }
             setIoStates();               // refresh output IO port states
-            valveTimeOut(1200);          // make sure valves are not active more than
-                                         // 20 Minutes without refresh
+            valveTimeOut(valveMax);      // make sure active valves time-out
         }
- 
+        
         if ( now >= (lastBroadcast+300) ) {  // publish button states every 5 minutes
             lastBroadcast = now;
             publishButtonState();
         }
-
+        
         pollButtons();                   // process changes in button state
         delay(50);                       // avoid busy loop
     }
@@ -452,6 +503,9 @@ int main( int argc, char *argv[] ) {
         // restore timer setting
         setButtonState(INDEX_TIMER, readState(pushButton[INDEX_TIMER].name));
         
+        // restore timeout value
+        readInt( "valveMax", &valveMax);
+        
         // Initialize IO ports
         setupIO();
 
@@ -461,7 +515,7 @@ int main( int argc, char *argv[] ) {
         // get busy
         mainLoop();
     } else {
-        writeLog(LOG_ERR, "Error: Could not connect to MQTT broker at localhost:1883\n");
+        writeLog(LOG_ERR, "Error: Could not connect to MQTT broker at localhost:1883");
     }
     return 0;
 }

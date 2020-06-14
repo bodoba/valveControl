@@ -32,7 +32,10 @@ extern char *stateDir;                                // directory for state fil
 /* ----------------------------------------------------------------------------------- *
  * Prototypes
  * ----------------------------------------------------------------------------------- */
-void saveState ( const char *name, bool value );      // safe state of boolean value
+void saveState ( const char *name, bool value );      // save state of boolean value
 bool readState ( const char *name );                  // read named state
+
+void saveInt ( const char *name, int value  );        // save namend integer value
+bool readInt ( const char *name, int *value );        // read namend integer value
 
 #endif /* persistState_h */

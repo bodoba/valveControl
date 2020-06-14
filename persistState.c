@@ -29,8 +29,38 @@
  * ----------------------------------------------------------------------------------- */
 char *stateDir      = STATE_DIR;              // directory for state files
 
+
 /* ----------------------------------------------------------------------------------- *
- * Safe state by creating/removing a file in the state file directory
+ * Save integer value in named file
+ * ----------------------------------------------------------------------------------- */
+void saveInt ( const char *name, int value ) {
+    char *fname = malloc( sizeof(char) * ( strlen(stateDir)+strlen(name) + 2 ) );
+    sprintf( fname, "%s/%s", stateDir, name );
+    FILE *fd = fopen(fname, "w" );
+    fprintf(fd, "%08d \n", value);
+    fclose ( fd );
+    free(fname);
+    writeLog(LOG_DEBUG, "saveInt( %s, %d )", name, value );
+}
+
+/* ----------------------------------------------------------------------------------- *
+ * Save integer value in named file
+ * ----------------------------------------------------------------------------------- */
+bool readInt ( const char *name, int *value ) {
+    bool retval = false;
+    char *fname = malloc( sizeof(char) * ( strlen(stateDir)+strlen(name) + 2 ) );
+    sprintf( fname, "%s/%s", stateDir, name );
+    FILE *fd = fopen(fname, "r" );
+    if ( fd ) {
+        fscanf( fd, "%d", value );
+        fclose (fd);
+        writeLog(LOG_DEBUG, "readInt( %s, %d )", name, *value );
+    }
+    free(fname);
+    return retval;
+}
+/* ----------------------------------------------------------------------------------- *
+ * Save state by creating/removing a file in the state file directory
  * ----------------------------------------------------------------------------------- */
 void saveState (const char *name, bool state) {
     if (readState(name) != state) {
@@ -44,7 +74,7 @@ void saveState (const char *name, bool state) {
         }
         free(fname);
     }
-    writeLog(LOG_DEBUG, "writeState( %s, %s )", name, state ? "TRUE" : "FALSE" );
+    writeLog(LOG_DEBUG, "saveState( %s, %s )", name, state ? "TRUE" : "FALSE" );
 }
 
 /* ----------------------------------------------------------------------------------- *

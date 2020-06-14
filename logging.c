@@ -152,6 +152,7 @@ void writeLog( int level, const char* format, ...) {
             sprintf(fmt, "<%s> %s\n", logLevelText[level], format);
             vsyslog( level, fmt, valist );
         } else {
+            sprintf(fmt, "%s\n", fmt);
             vprintf( fmt, valist );
         }
     

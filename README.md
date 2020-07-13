@@ -25,6 +25,9 @@ This application provides a mqtt based remote control for irrigation valves to a
     * Add/Remove events to schedule table
     * Get Schedule table with all timer events
 
+* Android App
+An android app is availble that integrates with this server software. See https://github.com/bodoba/valveControlApp
+
 ### Limitations
 
 **No security mechnisms  are provided**
